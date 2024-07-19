@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,7 @@ import * as z from "zod";
 import { useState } from "react";
 import FormField from "@/components/FormField";
 import SubmitButton from "@/components/SubmitButton";
-import useApi from "@/lib/hooks/useApi";
+import { registerUser } from "@/services/auth"; // Importe a função de registro
 import { useToast } from "@/components/ui/use-toast";
 
 const schema = z.object({
@@ -27,18 +27,16 @@ const SignupForm: React.FC = () => {
   });
 
   const [formError, setFormError] = useState<string | null>(null);
-  const { data, loading, error, fetchData } = useApi('/auth/register', 'POST');
   const { toast } = useToast();
 
   const onSubmit: SubmitHandler<FormData> = async (formData) => {
     const { confirmPassword, ...submissionData } = formData;
-    await fetchData(submissionData);
-
-    if (error) {
+    try {
+      await registerUser(submissionData.email, submissionData.password);
+      toast({ description: "Cadastro realizado com sucesso!", variant: "default" });
+    } catch (error) {
       setFormError("Erro ao enviar o formulário. Por favor, tente novamente.");
       toast({ description: "Erro ao enviar o formulário. Por favor, tente novamente.", variant: "destructive" });
-    } else {
-      toast({ description: "Cadastro realizado com sucesso!", variant: "default" });
     }
   };
 
@@ -46,7 +44,7 @@ const SignupForm: React.FC = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto p-4 space-y-5">
       <FormField
         id="name"
-        label="Name"
+        label="Nome"
         type="text"
         register={register}
         error={errors.name}
@@ -73,7 +71,7 @@ const SignupForm: React.FC = () => {
         error={errors.confirmPassword}
       />
       {formError && <div className="text-red-500">{formError}</div>}
-      <SubmitButton loading={loading} text={"Sign up"}/>
+      <SubmitButton loading={false} text={"Sign up"} />
     </form>
   );
 };
